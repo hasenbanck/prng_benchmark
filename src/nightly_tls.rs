@@ -58,7 +58,7 @@ pub fn romu_trio_u64() -> u64 {
 
 #[thread_local]
 pub(crate) static LEHMER64: Lehmer64 = Lehmer64 {
-    state: Cell::new(0),
+    state: Cell::new(3),
 };
 
 #[inline(always)]
@@ -91,7 +91,7 @@ pub fn mwc256xxa64_u64() -> u64 {
 
 #[thread_local]
 pub(crate) static WYRAND: Wyrand = Wyrand {
-    state: Cell::new(0),
+    state: Cell::new(3),
 };
 
 #[inline(always)]
@@ -106,7 +106,7 @@ pub fn wyrand_u64() -> u64 {
 
 #[thread_local]
 pub(crate) static SPLITMIX64: Splitmix64 = Splitmix64 {
-    state: Cell::new(0),
+    state: Cell::new(3),
 };
 
 #[inline(always)]
@@ -121,10 +121,10 @@ pub fn splitmix64_u64() -> u64 {
 
 #[thread_local]
 pub(crate) static XOSHIRO256PLUSPLUS: Xoshiro256plusplus = Xoshiro256plusplus {
-    s0: Cell::new(0),
-    s1: Cell::new(0),
-    s2: Cell::new(0),
-    s3: Cell::new(0),
+    s0: Cell::new(3),
+    s1: Cell::new(3),
+    s2: Cell::new(3),
+    s3: Cell::new(3),
 };
 
 #[inline(always)]
@@ -139,8 +139,8 @@ pub fn xoshiro256plusplus_u64() -> u64 {
 
 #[thread_local]
 pub(crate) static PCG64: Pcg64 = Pcg64 {
-    state: Cell::new(0),
-    inc: Cell::new(0),
+    state: Cell::new(3),
+    inc: Cell::new(3),
 };
 
 #[inline(always)]
@@ -155,7 +155,7 @@ pub fn pcg64_u64() -> u64 {
 
 #[thread_local]
 pub(crate) static PCG64FAST: Pcg64Fast = Pcg64Fast {
-    state: Cell::new(0),
+    state: Cell::new(3),
 };
 
 #[inline(always)]
