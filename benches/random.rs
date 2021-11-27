@@ -210,17 +210,16 @@ pub fn bytes(c: &mut Criterion) {
 pub fn thread_local(c: &mut Criterion) {
     let mut group = c.benchmark_group("thread_local");
 
-    // Make sure that the thread locals are initialized.
-    black_box(lehmer64_u64());
-    black_box(mwc256xxa64_u64());
-    black_box(pcg64_u64());
-    black_box(pcg64fast_u64());
-    black_box(tylo64_u64());
-    black_box(romu_jr_u64());
-    black_box(romu_trio_u64());
-    black_box(splitmix64_u64());
-    black_box(wyrand_u64());
-    black_box(xoshiro256plusplus_u64());
+    lehmer64_seed();
+    mwc256xxa64_seed();
+    pcg64_seed();
+    pcg64fast_seed();
+    tylo64_seed();
+    romu_jr_seed();
+    romu_trio_seed();
+    splitmix64_seed();
+    wyrand_seed();
+    xoshiro256plusplus_seed();
 
     let mut state: u64 = 0;
     group.bench_function(BenchmarkId::new("lehmer64", "u64"), |b| {

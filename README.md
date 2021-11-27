@@ -18,6 +18,15 @@ The PRNG for this benchmark should be as portable and simple as possible (no cus
 * [Wyrand](https://github.com/wangyi-fudan/wyhash)
 * [Xoshiro256++](https://prng.di.unimi.it/)
 
+# About TLS
+
+The [thread local macro](https://doc.rust-lang.org/std/macro.thread_local.html) in stable Rust complicates the thread 
+local benchmark test. It seems that the current implementation has some weird performance implications and some PRNG
+are affected more of it than others.
+
+The currently unstable feature "thread_local" seems to resolve this issue. This can be tested by using a nightly
+compiler and using the feature "nightly_thread_local".
+
 # License
 
 The license of the benchmark code itself is public domain.

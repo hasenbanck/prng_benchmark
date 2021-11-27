@@ -10,17 +10,15 @@ getrandom = "0.2"
 [dev-dependencies]
 criterion = "~0.3.5"
 
+[features]
+default = []
+#nightly_thread_local = []
+
 [[bench]]
 name = "random"
 harness = false
 
 [profile.bench]
-opt-level = 3
-codegen-units = 1
-lto = "fat"
-
-
-[profile.test]
 opt-level = 3
 codegen-units = 1
 lto = "fat"

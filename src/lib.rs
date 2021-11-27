@@ -1,7 +1,20 @@
+#![feature(thread_local)]
+
 use std::cell::Cell;
+
+#[cfg(feature = "nightly_thread_local")]
+mod nightly_tls;
+#[cfg(not(feature = "nightly_thread_local"))]
+mod stable_tls;
+
+#[cfg(feature = "nightly_thread_local")]
+pub use nightly_tls::*;
+#[cfg(not(feature = "nightly_thread_local"))]
+pub use stable_tls::*;
 
 pub trait Random {
     fn u64(&self) -> u64;
+    fn seed(&self);
 
     fn fill_bytes(&self, slice: &mut [u8]) {
         let mut chunks = slice.chunks_exact_mut(8);
@@ -31,26 +44,15 @@ pub struct Tylo64 {
 
 impl Default for Tylo64 {
     fn default() -> Self {
-        let mut k = get_seed();
-        if k % 2 == 0 {
-            k -= 1;
-        }
-        Self {
-            a: Cell::new(get_seed() | 1),
-            b: Cell::new(get_seed() | 1),
-            w: Cell::new(get_seed() | 1),
-            k: Cell::new(k | 1),
-        }
+        let s = Self {
+            a: Cell::new(0),
+            b: Cell::new(0),
+            w: Cell::new(0),
+            k: Cell::new(0),
+        };
+        s.seed();
+        s
     }
-}
-
-thread_local! {
-    static TYLO64: Tylo64 = Tylo64::default();
-}
-
-#[inline(always)]
-pub fn tylo64_u64() -> u64 {
-    TYLO64.with(|rng| rng.u64())
 }
 
 impl Random for Tylo64 {
@@ -66,6 +68,18 @@ impl Random for Tylo64 {
 
         out
     }
+
+    fn seed(&self) {
+        let mut k = get_seed();
+        if k % 2 == 0 {
+            k -= 1;
+        }
+
+        self.a.set(get_seed() | 1);
+        self.b.set(get_seed() | 1);
+        self.w.set(get_seed() | 1);
+        self.k.set(k);
+    }
 }
 
 /// Copyright 2020 Mark A. Overton
@@ -77,20 +91,13 @@ pub struct RomuJr {
 
 impl Default for RomuJr {
     fn default() -> Self {
-        Self {
-            x: Cell::new(get_seed() | 1),
-            y: Cell::new(get_seed() | 1),
-        }
+        let s = Self {
+            x: Cell::new(0),
+            y: Cell::new(0),
+        };
+        s.seed();
+        s
     }
-}
-
-thread_local! {
-    static ROMUJR: RomuJr = RomuJr::default();
-}
-
-#[inline(always)]
-pub fn romu_jr_u64() -> u64 {
-    ROMUJR.with(|rng| rng.u64())
 }
 
 impl Random for RomuJr {
@@ -104,6 +111,11 @@ impl Random for RomuJr {
 
         xp
     }
+
+    fn seed(&self) {
+        self.x.set(get_seed() | 1);
+        self.y.set(get_seed() | 1);
+    }
 }
 
 /// Copyright 2020 Mark A. Overton
@@ -116,21 +128,14 @@ pub struct RomuTrio {
 
 impl Default for RomuTrio {
     fn default() -> Self {
-        Self {
-            x: Cell::new(get_seed() | 1),
-            y: Cell::new(get_seed() | 1),
-            z: Cell::new(get_seed() | 1),
-        }
+        let s = Self {
+            x: Cell::new(0),
+            y: Cell::new(0),
+            z: Cell::new(0),
+        };
+        s.seed();
+        s
     }
-}
-
-thread_local! {
-    static ROMUTRIO: RomuTrio = RomuTrio::default();
-}
-
-#[inline(always)]
-pub fn romu_trio_u64() -> u64 {
-    ROMUTRIO.with(|rng| rng.u64())
 }
 
 impl Random for RomuTrio {
@@ -147,6 +152,12 @@ impl Random for RomuTrio {
         self.z.set((self.z.get() << 44) | (self.z.get() >> 20));
 
         xp
+    }
+
+    fn seed(&self) {
+        self.x.set(get_seed() | 1);
+        self.y.set(get_seed() | 1);
+        self.z.set(get_seed() | 1);
     }
 }
 
@@ -165,19 +176,12 @@ pub struct Lehmer64 {
 
 impl Default for Lehmer64 {
     fn default() -> Self {
-        Self {
-            state: Cell::new((((get_seed() as u128) << 64) + get_seed() as u128) | 1),
-        }
+        let s = Self {
+            state: Cell::new(0),
+        };
+        s.seed();
+        s
     }
-}
-
-thread_local! {
-    static LEHMER64: Lehmer64 = Lehmer64::default();
-}
-
-#[inline(always)]
-pub fn lehmer64_u64() -> u64 {
-    LEHMER64.with(|rng| rng.u64())
 }
 
 impl Random for Lehmer64 {
@@ -188,6 +192,11 @@ impl Random for Lehmer64 {
             .set(self.state.get().wrapping_mul(0xDA942042E4DD58B5));
 
         (s >> 64) as u64
+    }
+
+    fn seed(&self) {
+        self.state
+            .set((((get_seed() as u128) << 64) + get_seed() as u128) | 1);
     }
 }
 
@@ -202,22 +211,15 @@ pub struct Mwc256XXA64 {
 
 impl Default for Mwc256XXA64 {
     fn default() -> Self {
-        Self {
-            x1: Cell::new(get_seed() | 1),
-            x2: Cell::new(get_seed() | 1),
-            x3: Cell::new(get_seed() | 1),
-            c: Cell::new(get_seed() | 1),
-        }
+        let s = Self {
+            x1: Cell::new(0),
+            x2: Cell::new(0),
+            x3: Cell::new(0),
+            c: Cell::new(0),
+        };
+        s.seed();
+        s
     }
-}
-
-thread_local! {
-    static MWC256XXA64: Mwc256XXA64 = Mwc256XXA64::default();
-}
-
-#[inline(always)]
-pub fn mwc256xxa64_u64() -> u64 {
-    MWC256XXA64.with(|rng| rng.u64())
 }
 
 impl Random for Mwc256XXA64 {
@@ -237,6 +239,13 @@ impl Random for Mwc256XXA64 {
 
         result
     }
+
+    fn seed(&self) {
+        self.x1.set(get_seed() | 1);
+        self.x2.set(get_seed() | 1);
+        self.x3.set(get_seed() | 1);
+        self.c.set(get_seed() | 1);
+    }
 }
 
 /// Licensed under "The Unlicense".
@@ -246,19 +255,12 @@ pub struct Wyrand {
 
 impl Default for Wyrand {
     fn default() -> Self {
-        Self {
-            state: Cell::new(get_seed() | 1),
-        }
+        let s = Self {
+            state: Cell::new(0),
+        };
+        s.seed();
+        s
     }
-}
-
-thread_local! {
-    static WYRAND: Wyrand = Wyrand::default();
-}
-
-#[inline(always)]
-pub fn wyrand_u64() -> u64 {
-    WYRAND.with(|rng| rng.u64())
 }
 
 impl Random for Wyrand {
@@ -270,6 +272,10 @@ impl Random for Wyrand {
 
         let c = (s ^ 0xE7037ED1A0B428DB) as u128 * s as u128;
         ((c >> 64) ^ c) as u64
+    }
+
+    fn seed(&self) {
+        self.state.set(get_seed() | 1);
     }
 }
 
@@ -286,19 +292,12 @@ pub struct Splitmix64 {
 
 impl Default for Splitmix64 {
     fn default() -> Self {
-        Self {
-            state: Cell::new(get_seed() | 1),
-        }
+        let s = Self {
+            state: Cell::new(0),
+        };
+        s.seed();
+        s
     }
-}
-
-thread_local! {
-    static SPLITMIX64: Splitmix64 = Splitmix64::default();
-}
-
-#[inline(always)]
-pub fn splitmix64_u64() -> u64 {
-    SPLITMIX64.with(|rng| rng.u64())
 }
 
 impl Random for Splitmix64 {
@@ -309,6 +308,10 @@ impl Random for Splitmix64 {
         x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9;
         x = (x ^ (x >> 27)) * 0x94D049BB133111EB;
         x ^ (x >> 31)
+    }
+
+    fn seed(&self) {
+        self.state.set(get_seed() | 1);
     }
 }
 
@@ -328,22 +331,15 @@ pub struct Xoshiro256plusplus {
 
 impl Default for Xoshiro256plusplus {
     fn default() -> Self {
-        Self {
-            s0: Cell::new(get_seed() | 1),
-            s1: Cell::new(get_seed() | 1),
-            s2: Cell::new(get_seed() | 1),
-            s3: Cell::new(get_seed() | 1),
-        }
+        let s = Self {
+            s0: Cell::new(0),
+            s1: Cell::new(0),
+            s2: Cell::new(0),
+            s3: Cell::new(0),
+        };
+        s.seed();
+        s
     }
-}
-
-thread_local! {
-    static XOSHIRO256PLUSPLUS: Xoshiro256plusplus = Xoshiro256plusplus::default();
-}
-
-#[inline(always)]
-pub fn xoshiro256plusplus_u64() -> u64 {
-    XOSHIRO256PLUSPLUS.with(|rng| rng.u64())
 }
 
 impl Random for Xoshiro256plusplus {
@@ -369,6 +365,13 @@ impl Random for Xoshiro256plusplus {
 
         result
     }
+
+    fn seed(&self) {
+        self.s0.set(get_seed() | 1);
+        self.s1.set(get_seed() | 1);
+        self.s2.set(get_seed() | 1);
+        self.s3.set(get_seed() | 1);
+    }
 }
 
 /// Copyright 2014-2019 Melissa O'Neill and the PCG Project contributors.
@@ -387,15 +390,6 @@ impl Default for Pcg64 {
     }
 }
 
-thread_local! {
-static PCG64: Pcg64 = Pcg64::default();
-}
-
-#[inline(always)]
-pub fn pcg64_u64() -> u64 {
-    PCG64.with(|rng| rng.u64())
-}
-
 impl Random for Pcg64 {
     #[inline(always)]
     fn u64(&self) -> u64 {
@@ -411,6 +405,13 @@ impl Random for Pcg64 {
         let xsl = ((s >> 64) as u64) ^ (s as u64);
         xsl.rotate_right(rot)
     }
+
+    fn seed(&self) {
+        self.state
+            .set((((get_seed() as u128) << 64) + get_seed() as u128) | 1);
+        self.inc
+            .set((((get_seed() as u128) << 64) + get_seed() as u128) | 1);
+    }
 }
 
 /// Copyright 2014-2019 Melissa O'Neill and the PCG Project contributors.
@@ -421,19 +422,12 @@ pub struct Pcg64Fast {
 
 impl Default for Pcg64Fast {
     fn default() -> Self {
-        Self {
-            state: Cell::new((((get_seed() as u128) << 64) + get_seed() as u128) | 1),
-        }
+        let s = Self {
+            state: Cell::new(0),
+        };
+        s.seed();
+        s
     }
-}
-
-thread_local! {
-static PCG64FAST: Pcg64Fast = Pcg64Fast::default();
-}
-
-#[inline(always)]
-pub fn pcg64fast_u64() -> u64 {
-    PCG64FAST.with(|rng| rng.u64())
 }
 
 impl Random for Pcg64Fast {
@@ -449,5 +443,10 @@ impl Random for Pcg64Fast {
         let rot = (s >> 122) as u32;
         let xsl = ((s >> 64) as u64) ^ (s as u64);
         xsl.rotate_right(rot)
+    }
+
+    fn seed(&self) {
+        self.state
+            .set((((get_seed() as u128) << 64) + get_seed() as u128) | 1);
     }
 }
