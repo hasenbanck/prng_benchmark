@@ -1,4 +1,4 @@
-#![feature(thread_local)]
+#![cfg_attr(feature = "nightly_thread_local", feature(thread_local))]
 
 use std::cell::Cell;
 

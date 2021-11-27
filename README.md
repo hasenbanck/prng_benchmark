@@ -25,7 +25,11 @@ local benchmark test. It seems that the current implementation has some weird pe
 are affected more of it than others.
 
 The currently unstable feature "thread_local" seems to resolve this issue. This can be tested by using a nightly
-compiler and using the feature "nightly_thread_local".
+compiler and using the feature "nightly_thread_local":
+
+```sh
+cargo +nightly criterion --features="nightly_thread_local"
+```
 
 # License
 
